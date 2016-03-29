@@ -26,3 +26,8 @@ grepl("^\ [0-9]{4}"," 1101 台灣水泥  " )
 grepl("^\ {3}[0-9]{4}"," 1101 台灣水泥  " )
 [1] FALSE
 
+#
+grepl("^\ *[(]",CheckSymbol2)
+
+#奇數都是TRUE
+regexec("^\ {3}[0-9]{2,4}",GetCheckSymbolIndustry)[[1]][1]
