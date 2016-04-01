@@ -1,17 +1,25 @@
-for (file_year in 1999:2015) {
-  for (file_QNum in 1:4) {
-    A<-file_year!=2015
-    B<-file_QNum!=4
-    if(A&B){
+for (A in 1999:2015) {
+  for (B in 1:4) {
+    #C<-A==2015
+    #D<-B==4
+    if(A==2015&B==4){
       break
-      #print(paste0(file_year,"Q",file_QNum))
+     # print(paste0(A,"Q",B))
     }
-    print(paste0(file_year,"Q",file_QNum))
-    
+    print(paste0(A,"Q",B))
   }
 }
 
-
+for (A in 1999:2015) {
+  for (B in 1:4) {
+    C<-A!=2015
+    D<-B!=4
+    if(C&D){
+      print(paste0(A,"Q",B))
+      break
+    }
+  }
+}
 
 
 for (i in 1:3) {
