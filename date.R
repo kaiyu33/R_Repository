@@ -1,8 +1,15 @@
+#time
+Sys.time()
+#[1] "2016-04-04 20:05:03 CST"
+proc.time()
+# user    system   elapsed 
+# 11463.12      9.59 111870.56 
+
 Sys.Date()
-[1] "2016-04-03"
+#[1] "2016-04-03"
 
 date()
-[1] "Sun Apr 03 03:28:50 2016"
+#[1] "Sun Apr 03 03:28:50 2016"
 
 format(Sys.Date(), "%a %b %d")
 [1] "週日 四月 03"

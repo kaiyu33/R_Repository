@@ -7,7 +7,9 @@ library(quantmod)
 #'美股-AAPL
 #'直接取用Yahoo Finance 
 getSymbols("AAPL")
+#線圖
 chartSeries(AAPL)
+#線圖 白底 時間
 chartSeries(AAPL["2000-01::2012-06"],theme="white")
 #均線資料
 ma_20<-runMean(AAPL[,4],n=20)   
@@ -15,6 +17,7 @@ ma_60<-runMean(AAPL[,4],n=60)
 #加入均線
 addTA(ma_20,on=1,col="blue")
 addTA(ma_60,on=1,col="red")
+#
 addBBands()
 #進行策略回測
 
@@ -56,4 +59,3 @@ return<-return['2007-04-10/2013-12-31']
 return<-exp(cumsum(return))
 #損益圖畫出
 plot(return)
-
