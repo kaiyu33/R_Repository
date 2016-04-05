@@ -2,7 +2,7 @@
 library(quantmod)
 
 #x_path<-"file:///C:/Users/Student/Desktop/DATABASE/tw0050.csv"
- x_path<-"file:///F:/EXdata/tw0050.csv"
+x_path<-"file:///F:/EXdata/tw0050.csv"
 readBin(x_path, "raw", n = 3L)
 #可查編碼BOM
 readLines(file(x_path, encoding = "BIG5"), n = 6)
