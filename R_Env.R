@@ -47,7 +47,7 @@ fun_name<- function(…){
 demo(graphics)
 
 #遠端搜尋功能
-RSiteSearch("anova")
+RSiteSearch("json")
 
 
 
