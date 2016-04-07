@@ -1,17 +1,47 @@
 #台股######################################################################################
+
+library(dplyr)
 #install.packages("quantmod")
 library(quantmod)
 
 #取得資料
 getSymbols("2317.TW")
 
-#顯示圖表
-chartSeries(`2317.TW`)
-#chartSeries(`2317.TW`["2000-01::2012-06"],theme="white")
+# #顯示圖表
+# chartSeries(`2317.TW`)
+# #chartSeries(`2317.TW`["2000-01::2012-06"],theme="white")
 
 #與colnames相同
 colnames(`2317.TW`)<-c("Open","High","Low","Close","Volume","adjusted")
 #names( `2317.TW`)
+
+tw<-as.data.frame(`2317.TW`)
+# class(tw[1,1])
+# tw[,5]!=0
+# slice(tw,tw[,5]!=0)
+# nrow(tw)
+# [1] 2339
+
+DRow<-NULL
+for (i in 1:nrow(tw)) {
+  if (tw[i,5]==0) {
+    DRow<-cbind(DRow,i)
+  }
+}
+
+tw2317<-slice(tw,-DRow)
+# as.xts(tw2317)
+# slice(tw,1:10)
+# slice()
+macd  <- MACD( tw2317[,"Close"], 12, 26, 9, maType="EMA" )
+macd2  <- MACD( tw2317[,"Close"], 12, 26, 9, maType="EMA" ,percent=TRUE)
+macd3 <- MACD(  tw2317[,"Close"],12, 26, 9, maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
+
+EMA(tw2317[,"Close"], 12,wilder = TRUE)
+
+EMA(tw2317[,"Close"], 12)
+A<-EMA(`2317.TW`[,"Close"], 12)-EMA(`2317.TW`[,"Close"], 26)
+A-EMA(A[,"EMA"], 9)
 
 # # 縮寫 最長四個字
 # abbreviate(names( `2317.TW`),minlength = 4)
