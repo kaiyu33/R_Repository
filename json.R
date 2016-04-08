@@ -9,6 +9,8 @@ CT_path<-paste0(Upath,"1CreditTransactions.txt")
 # read.csv(CT_path, sep =  "[")
 # CT[2]
 
+library(jsonlite)
+
 #json
 fromJSON("https://api.github.com/users/hadley/repos")
 CT<-head(fromJSON("http://www.tpex.org.tw/web/stock/margin_trading/margin_balance/margin_bal_result.php?l=zh-tw&_=1459953443182"))

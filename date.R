@@ -22,6 +22,8 @@ as.Date(dates, "%m/%d/%y")
 
 ## So for dates (post-1901) from Windows Excel
 as.Date(35981, origin = "1899-12-30") # 1998-07-05
+as.Date(35982, origin = "1899-12-30")
+
 ## and Mac Excel
 as.Date(34519, origin = "1904-01-01") # 1998-07-05
 
