@@ -46,23 +46,14 @@ getSymbols("2317.TW")#20070102- BY quantmod   default: 不還原除權息,原始
 
 #MA & VWAP
 SMA(x, n = 10, ...)
-
 EMA(x, n = 10, wilder = FALSE, ratio = NULL, ...)
-
 DEMA(x, n = 10, v = 1, wilder = FALSE, ratio = NULL)
-
 WMA(x, n = 10, wts = 1:n, ...)
-
 EVWMA(price, volume, n = 10, ...)
-
 ZLEMA(x, n = 10, ratio = NULL, ...)
-
 VWAP(price, volume, n = 10, ...)
-
 VMA(x, w, ratio = 1, ...)
-
 HMA(x, n = 20, ...)
-
 ALMA(x, n = 9, offset = 0.85, sigma = 6, ...)
 
 #MACD
@@ -71,48 +62,33 @@ macd2 <- MACD( ttrc[,"Close"], 12, 26, 9,
                maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
 
 #stoch
-stoch(HLC, nFastK = 14, nFastD = 3, nSlowD = 3, maType, bounded = TRUE,
-      smooth = 1, ...)
-
-SMI(HLC, n = 13, nFast = 2, nSlow = 25, nSig = 9, maType,
-    bounded = TRUE, ...)
+stoch(HLC, nFastK = 14, nFastD = 3, nSlowD = 3, maType, bounded = TRUE,smooth = 1, ...)
+SMI(HLC, n = 13, nFast = 2, nSlow = 25, nSig = 9, maType,bounded = TRUE, ...)
 ##Examples
 data(ttrc)
 stochOSC <- stoch(ttrc[,c("High","Low","Close")])
 stochWPR <- WPR(ttrc[,c("High","Low","Close")])
 
-plot(tail(stochOSC[,"fastK"], 100), type="l",
-     main="Fast %K and Williams %R", ylab="",
-     ylim=range(cbind(stochOSC, stochWPR), na.rm=TRUE) )
+plot(tail(stochOSC[,"fastK"], 100), type="l",main="Fast %K and Williams %R", ylab="",ylim=range(cbind(stochOSC, stochWPR), na.rm=TRUE) )
 lines(tail(stochWPR, 100), col="blue")
 lines(tail(1-stochWPR, 100), col="red", lty="dashed")
 
-stoch2MA <- stoch( ttrc[,c("High","Low","Close")],
-                   maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
-
-SMI3MA <- SMI(ttrc[,c("High","Low","Close")],
-              maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
-
+stoch2MA <- stoch( ttrc[,c("High","Low","Close")],maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
+SMI3MA <- SMI(ttrc[,c("High","Low","Close")],maType=list(list(SMA), list(EMA, wilder=TRUE), list(SMA)) )
 stochRSI <- stoch( RSI(ttrc[,"Close"]) )
 
 
 #RSI
 RSI(price, n = 14, maType, ...)
 ##Examples
-
 data(ttrc)
 price <- ttrc[,"Close"]
-
 # Default case
 rsi <- RSI(price)
-
 # Case of one 'maType' for both MAs
 rsiMA1 <- RSI(price, n=14, maType="WMA", wts=ttrc[,"Volume"])
-
 # Case of two different 'maType's for both MAs
-rsiMA2 <- RSI(price, n=14, maType=list(maUp=list(EMA,ratio=1/5),
-                                       maDown=list(WMA,wts=1:10)))
-
+rsiMA2 <- RSI(price, n=14, maType=list(maUp=list(EMA,ratio=1/5), maDown=list(WMA,wts=1:10)))
 
 #BBands
 BBands(HLC, n = 20, maType, sd = 2, ...)
