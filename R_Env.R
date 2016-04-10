@@ -47,10 +47,12 @@ fun_name<- function(…){
 demo(graphics)
 
 #遠端搜尋功能
-RSiteSearch("json")
+RSiteSearch("xml")
 
-
-
+search()
+# [1] ".GlobalEnv"        "package:jsonlite"  "package:dplyr"     "package:xlsx"      "package:xlsxjars"  "package:rJava"     "package:httr"     
+# [8] "package:httpuv"    "tools:rstudio"     "package:stats"     "package:graphics"  "package:grDevices" "package:utils"     "package:datasets" 
+# [15] "package:methods"   "Autoloads"         "package:base"     
 
 
 

@@ -134,16 +134,61 @@ stochRSI <- stoch( RSI(tw2317[,"Close"]) )
 # [2258,] 6.828913e-02 0.02276304 0.10478600
 # [2259,] 1.607941e-01 0.07636108 0.08164053
 
+#ROC　change
+# ROC(x, n = 1, type = c("continuous", "discrete"), na.pad = TRUE)
+# momentum(x, n = 1, na.pad = TRUE)
+roc <- ROC(tw2317[,"Close"])
+mom <- momentum(tw2317[,"Close"])
+
+#ADX
+# ADX(HLC, n = 14, maType, ...)
+dmi.adx <- ADX(tw2317[,c("High","Low","Close")])
+
+
+x<-tw2317[,"Close"]
+volume<-tw2317[,"Volume"]
+#runSum
+runSum(x, n = 10, cumulative = FALSE)
+runMin(x, n = 10, cumulative = FALSE)
+runMax(x, n = 10, cumulative = FALSE)
+runMean(x, n = 10, cumulative = FALSE)
+runMedian(x, n = 10, non.unique = "mean", cumulative = FALSE)
+runSD(x, n = 10, sample = TRUE, cumulative = FALSE)
+runMAD(x, n = 10, center = NULL, stat = "median", constant = 1.4826,non.unique = "mean", cumulative = FALSE)
+wilderSum(x, n = 10)
+
+runCov(x, y, n = 10, use = "all.obs", sample = TRUE, cumulative = FALSE)
+runCor(x, y, n = 10, use = "all.obs", sample = TRUE, cumulative = FALSE)
+runVar(x, y = NULL, n = 10, sample = TRUE, cumulative = FALSE)
+# 協方差
+# 相關
+# 方差
+
+#MA & VWAP
+SMA(x, n = 10)
+EMA(x, n = 10, wilder = FALSE, ratio = NULL)
+#[2250]  83.34895  83.55823  83.60219  83.76543  83.75353  83.94380  83.77220  83.30453  82.97643  82.78072
+DEMA(x, n = 10, v = 1, wilder = FALSE, ratio = NULL)
+WMA(x, n = 10, wts = 1:10)
+#[2250]  83.73273  83.91455  83.94182  84.08545  84.07455  84.23818  84.04182  83.50909  83.08182  82.78182
+EVWMA(x, volume, n = 10)
+ZLEMA(x, n = 10, ratio = NULL)
+VWAP(x, volume, n = 10)
+HMA(x, n = 20)
+ALMA(x, n = 9, offset = 0.85, sigma = 6)
 
 ##############################################################################
 tw2317m<-cbind(tw2317,macd)#XXXXXXX
 
-
-
-
-#ROC　change
-#runSum
-#ADX
+#可變長度的移動平均線。
 #MA & VWAP
+w<-3
+VMA(x, w, ratio = 1)
 
-
+#runSum
+runCov(x, y, n = 10, use = "all.obs", sample = TRUE, cumulative = FALSE)
+runCor(x, y, n = 10, use = "all.obs", sample = TRUE, cumulative = FALSE)
+runVar(x, y = NULL, n = 10, sample = TRUE, cumulative = FALSE)
+# 協方差
+# 相關
+# 方差
