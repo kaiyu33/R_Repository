@@ -54,8 +54,8 @@ search()
 # [8] "package:httpuv"    "tools:rstudio"     "package:stats"     "package:graphics"  "package:grDevices" "package:utils"     "package:datasets" 
 # [15] "package:methods"   "Autoloads"         "package:base"     
 
-
-
+#暫停幾"秒"
+Sys.sleep(3)
 
 
 

@@ -37,3 +37,7 @@ as.Date(z) # in UTC
 ## these time zone names are common
 as.Date(z, tz = "NZ")
 as.Date(z, tz = "HST") # Hawaii
+
+
+#計算距今幾天
+as.numeric(as.Date("2011-01-01"))-as.numeric(as.Date(as.numeric(Sys.Date())+25569, origin = "1899-12-30"))
