@@ -57,5 +57,31 @@ search()
 #暫停幾"秒"
 Sys.sleep(3)
 
+##-- Global assignment within a function:
+myf <- function(x) {
+  innerf <- function(x) assign("Global.res", x^2, envir = .GlobalEnv)
+  innerf(x+1)
+}
+myf(3)
+Global.res # 16
+cat(myf(3))
 
-
+a <- 1:4
+assign("a[1]", 2)
+a[1] == 2          # FALSE
+get("a[1]") == 2   # TRUE
+# > a[1]
+# [1] 1
+# > get("a[1]")
+# [1] 2
+# > a <- 1:4#是影響以下
+# > a[1]
+# [1] 1
+# > a[2]
+# [1] 2
+# > a[3]
+# [1] 3
+# > a[4]
+# [1] 4
+# > a[5]
+# [1] NA
