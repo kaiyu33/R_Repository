@@ -1,14 +1,17 @@
 #install.packages("quantmod")
 library(quantmod)
 
+
+#disk location
+Upath<-paste0("D:/")
 #x_path<-"file:///C:/Users/Student/Desktop/DATABASE/tw0050.csv"
-x_path<-"file:///F:/EXdata/tw0050.csv"
+x_path<-paste0("file:///",Upath,"EXdata/tw0050.csv")
 readBin(x_path, "raw", n = 3L)
 #可查編碼BOM
 readLines(file(x_path, encoding = "BIG5"), n = 6)
 #編碼錯誤會出現錯誤訊息且不顯示
 # x1_path<-"C:/Users/Student/Desktop/DATABASE/tw0050.csv"
-x1_path<-"F:/EXdata/tw0050.csv"
+x1_path<-paste0(Upath,"EXdata/tw0050.csv")
 tw0050<-read.csv(x1_path,stringsAsFactors = FALSE)
 tw0050<-mutate(tw0050,NO=paste0("`",tw0050[[1]],".TW`",sep = ""))
 
