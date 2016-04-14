@@ -85,3 +85,7 @@ get("a[1]") == 2   # TRUE
 # [1] 4
 # > a[5]
 # [1] NA
+
+> split(DIRFI[i],".csv")
+$.csv
+[1] "1101台泥.csv"
