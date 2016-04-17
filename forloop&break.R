@@ -73,3 +73,52 @@ eval(substitute(lm(y~x+z),list(z=as.name(v[1]))))
 #   package ‘tutoR’ is not available (for R version 3.2.4 Revised)
 # library("tutoR")
 # eval.stg("x<- =1")
+
+#######################################################################for loop use braek
+for (A in 1999:2015) {
+  for (B in 1:4) {
+    #C<-A==2015
+    #D<-B==4
+    if(A==2015&B==4){
+      break
+      # print(paste0(A,"Q",B))
+    }
+    print(paste0(A,"Q",B))
+  }
+}
+
+for (A in 1999:2015) {
+  for (B in 1:4) {
+    C<-A!=2015
+    D<-B!=4
+    if(C&D){
+      print(paste0(A,"Q",B))
+      break
+    }
+  }
+}
+
+
+for (i in 1:3) {
+  for (j in 1:10) {
+    if (grepl("CODE\ *[&]\ *NAME\ *$",FinancialInformation[[i]][j])) {
+      namenum<-i;
+    }
+  }
+}
+
+for (i in 1:3) {
+  for (j in 1:10) {
+    if (grepl("^\ *OPERATING\ *REVENUES\ *$",FinancialInformation[[i]][j])) {
+      FInum<-i;
+    }
+  }
+}
+#會跳出來 不繼續執行
+for (i in 1:nrow(return)) {
+  if(is.na(return[i])){
+    j<-i
+  }else{
+    k<-i;break
+  }
+}

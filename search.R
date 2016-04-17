@@ -30,3 +30,13 @@ attributes(StockFI)
 # $class
 # [1] "data.frame"
 
+getGroup("exp")
+getGroup("==", recursive = TRUE)
+
+getGroupMembers("Arith")
+getGroupMembers("Math")
+getGroupMembers("Ops") # -> its sub groups
+
+#mutli use founction
+tmp <- expand.grid(letters[1:2], 1:3, c("+", "-"))
+ do.call("paste", c(tmp, sep = ""))

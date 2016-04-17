@@ -1,7 +1,13 @@
 #'packages xts
 #'
+#'父連結:multiquantmod_new2
+#'
+#'
+#
 #install.packages("quantmod")
 library(quantmod)
+
+tw50_data
 
 xts(x = NULL,
     order.by = index(x),
@@ -10,7 +16,7 @@ xts(x = NULL,
     tzone = Sys.getenv("TZ"),
     ...)
 
-is.xts(x)
+is.xts(tw50_data)
 
 ####Examples 建立xts
 data(sample_matrix)#180*4 time=rowname
