@@ -131,9 +131,11 @@ $.csv
 
 #查已設定變數有哪些
 ls()
+ls(pattern = "^TW")[1]
 
 #匯入回系統檔  但.Rprofile內的.First未起做用
 sys.source(paste0(substr(getwd(),1,3),"GitHub/R_Repository/",".Rprofile"), envir = attach(NULL, name = ".Rprofile"))
 
 #載入data 
 load(paste0(substr(getwd(),1,3),"GitHub/R_Repository/",".Rdata"))
+
