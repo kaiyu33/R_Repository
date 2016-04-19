@@ -27,7 +27,7 @@ library(quantmod)
 
 
 #disk location
-Upath<-paste0("F:/")
+Upath<-paste0("D:/")
 
 # #meyhod:1 read dir
 # tw50_path<-paste0(Upath,"data/new/tw50/")
