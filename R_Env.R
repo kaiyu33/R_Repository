@@ -20,6 +20,9 @@ library(quantmod)
 
 search()
 
+options(stringsAsFactors = T)
+options("stringsAsFactors")
+
 #載入設定
 # 在工作目錄的 .Rprofile
 
@@ -139,3 +142,12 @@ sys.source(paste0(substr(getwd(),1,3),"GitHub/R_Repository/",".Rprofile"), envir
 #載入data 
 load(paste0(substr(getwd(),1,3),"GitHub/R_Repository/",".Rdata"))
 
+txt <- c("arm","foot","lefroo", "bafoobar")
+if(length(i <- grep("foo", txt)))
+  cat("'foo' appears at least once in\n\t", txt, "\n")
+
+#字長
+nchar(ED)
+
+#FUNCTION用 寫到外面
+assign(n,1:i,globalenv())

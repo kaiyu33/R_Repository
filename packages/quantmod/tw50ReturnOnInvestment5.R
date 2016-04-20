@@ -18,16 +18,17 @@
 #'跳過改版4
 #'
 #'改版:5
-#'
+#'新增除權息資料 並於該段期間(除權息交易日 當日)持股為0 
+#'自動往前抓120天 DEFAULT:300天 實際回傳為200+
+#'新增每次報酬率 合併回報持有部位及報酬率
 
 #install.packages("quantmod")
 # library(dplyr)
 library(quantmod)
 
 
-
 #disk location
-Upath<-paste0("F:/")
+Upath<-paste0(substr(getwd(),1,1),":/")
 
 # #meyhod:1 read dir
 # tw50_path<-paste0(Upath,"data/new/tw50/")
@@ -43,8 +44,10 @@ tw50_dir<-tw50_dir[[1]]
 #setting zone 1
 from <- "2010-01-01"
 to <- "2016-04-17"
-stockNum<-tw50_dir
+# stockNum<-tw50_dir
+stockNum<-2330
 
+from <- as.Date(as.numeric(as.Date(from,origin='1970-01-01'))-120)
 for (i in 1:length(stockNum)) {
   Symbols.name<-paste0(substr(stockNum[i],1,4),".TW")####################tw50_dir[1]  for loop
   
@@ -130,12 +133,36 @@ for (i in 1:length(stockNum)) {
   assign(output1,sample.xts)
 }
 #result Example:
-TW.2317
+# TW.2330
 
 
+#################################################################################################################
+#'Restore_Ex_dividend
+#'EDxts,EDxtsC,EDxtsS
+#
+
+ED_path<-paste0(Upath,"EXdata/Ex_dividend/getStockNumED2/TW.",substr(Symbols.name,1,4),".csv")
+ED<-read.csv(ED_path,stringsAsFactors = FALSE)
+
+
+EDxts<-xts(as.matrix(ED[,-c(1,2)]),
+           as.Date(ED[,2]),
+           #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+           src='myData',updated=Sys.time())
+
+#################################################################################################################
+
+
+#################################################################################################################
+#'Backtesting
+#'
+#'使用資料
+#'tw50ReturnOnInvestment:TW.2330
+#'Restore_Ex_dividend:EDxts
+#'EDxts2,EDxtsC_p,ED_C_r:需要回原檔案抓 以上不含
 
 #setting zone 2
-sample.xts<-TW.2317
+sample.xts<-TW.2330
 #判斷式
 AnalyzingFormula<-c("ma_20","ma_60")
 
@@ -153,8 +180,59 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   
   #符合ma_20>ma_60則1(否:0),延遲一天
   position<-Lag(ifelse(AnalyzingFormula_A>AnalyzingFormula_B, 1,-1))
+  
+  Btxts_position<-xts(as.matrix(position),
+                      as.Date(time(TW.2330)),
+                      #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+                      src='myData',updated=Sys.time())
+  
+  for (p in 1:nrow(EDxts)) {#除權息部位為0
+    if (time(TW.2330)[1]<time(EDxts[p])) {
+      Btxts_position[time(EDxts[p])]<-0
+    }
+  }
+  
+  # #去除NA值
+  # for (i in 1:nrow(Btxts_position)) {
+  #   if(is.na(Btxts_position[i])){
+  #     j<-i
+  #   }else{
+  #     startisNumRow_position<-i;break
+  #   }
+  # }
+  # exchangeTimes<-NULL
+  # exchangeTimes_RNum<-NULL
+  # #exchange times
+  # for (p in 1:nrow(Btxts_position)) {
+  #   if(p>startisNumRow_position&p!=nrow(Btxts_position)){
+  #     exchangeTimes<-rbind(exchangeTimes,abs(Btxts_position[[p]]-Btxts_position[[p+1]]))
+  #     if(abs(Btxts_position[[p]]-Btxts_position[[p+1]])!=0){
+  #       exchangeTimes_RNum<-cbind(exchangeTimes_RNum,p)
+  #     }
+  #   }else{
+  #       exchangeTimes<-rbind(exchangeTimes,0)
+  #   }
+  # }
+  # sum(exchangeTimes)
+  # exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
+  
+  # for (m in 1:nrow(Btxts_position)) {
+  #   # if (is.na(Btxts_position[m,1])) {
+  #   #   0->Btxts_position[m,1]
+  #   # }
+  #   
+  #   for (p in 1:nrow(EDxts)) {
+  #     if (time(TW.2330)[1]<time(EDxts[p])) {
+  #       Btxts_position[time(EDxts[p])]<-0
+  #     }
+  #     # 0->Btxts_position[m,1]
+  #   }  
+  # }
+  
   #(log(今天收盤價/昨天收盤價),即10^"2.2e-02"之指數)*(是否持有:1,0)
-  return<-ROC(sample.xts$Adj)*position
+  # return<-ROC(sample.xts$Adj)*position#use Adj
+  return<-ROC(sample.xts$Close)*Btxts_position#use Close
+  
   
   #去除NA值
   for (i in 1:nrow(return)) {
@@ -167,6 +245,8 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   #期間
   return<-return[startisNumRow:nrow(sample.xts)]
   
+  return_All<-exp(cumsum(return))
+  
   startDate<-as.POSIXlt(time(sample.xts[startisNumRow]))
   endDate<-as.POSIXlt(time(sample.xts[nrow(sample.xts)]))
   startYear<-startDate$year+1900
@@ -176,28 +256,186 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   startDay<-startDate$mday
   endDay<-endDate$mday
   # unlist(unclass(startDate))
+}
   #################################################################################################################WeekRateOfReturn START
-  startDate_l<-startDate
+  {
+    # if(format(as.Date(startDate), "%a")=="週二")
+    # unlist(unclass(as.POSIXlt(as.Date(16699))))
+    # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+    
+    towday1<-8-unlist(unclass(startDate))[[7]][1]
+    dayNum<-as.numeric(as.Date(startDate))+towday1
+    
+    towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
+    dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
+    loopNum<-(dayNum_end-dayNum)/7-1
+    
+    result_t<-NULL
+    for (i in 0:loopNum) {
+      # i=1
+      #改周報酬
+      
+      period_Start<-as.Date(dayNum+7*i)#周一
+      period_End<-as.Date(dayNum+6+7*i)#周日
+      
+      period<-paste(period_Start,period_End,sep = "/")
+      
+      #符合時間內
+      # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
+      
+      return_period<-return[period]
+      if(dim(return_period)[1]!=0){
+        #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
+        assign("WeekRateOfReturn",exp(cumsum(return_period)))
+        result_W<-cbind("Date"=paste(substr(time(WeekRateOfReturn[length(WeekRateOfReturn)]),1,10),substr(time(WeekRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(WeekRateOfReturn[[length(WeekRateOfReturn)]][1],3))
+        #"WeekRoR"= 到xts沒用
+        result_t<-rbind(result_t,result_W)
+      }
+      # }##########################################################################################################符合時間內##############END
+    }
+    result<-result_t
+    # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
+    #        as.Date(result_t[,1]),
+    #        #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+    #        # src='yahoo',
+    #        Avg=mean(as.numeric(as.matrix(result_t[,2]))),
+    #        updated=Sys.time())
+    # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
+    output2<-paste0("WeekRateOfReturn.",substr(Symbols.name,1,4))
+    assign(output2,result)
+  }
+  #################################################################################################################WeekRateOfReturn END
+  #result Example:
+  str(WeekRateOfReturn.NA)
+  # An ‘xts’ object on 2010-04-16/2016-04-08 containing:
+  #   Data: chr [1:308, 1] "0.976" "1.025" "1.028" "0.939" "1.029" "0.913" "0.993" "1.02" "1.051" "0.963" "1.021" "1.076" "0.929" "1" ...
+  # Indexed by objects of class: [Date] TZ: UTC
+  # xts Attributes:  
+  #   List of 1
+  # $ updated: POSIXct[1:1], format: "2016-04-17 15:30:19"
+  WeekRateOfReturn.NA[,1]
+  mean(as.numeric(WeekRateOfReturn.NA[,1]))
+  # [1] 1.001286
+  summary(WeekRateOfReturn.NA)
+  # Index            WeekRateOfReturn.NA
+  # Min.   :2010-04-16   Min.   :0.8450     
+  # 1st Qu.:2011-10-12   1st Qu.:0.9825     
+  # Median :2013-04-15   Median :1.0000     
+  # Mean   :2013-04-10   Mean   :1.0013     
+  # 3rd Qu.:2014-10-04   3rd Qu.:1.0210     
+  # Max.   :2016-04-08   Max.   :1.1830    
   
-  # if(format(as.Date(startDate_l), "%a")=="週二")
-  # unlist(unclass(as.POSIXlt(as.Date(16699))))
-  # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
   
-  towday1<-8-unlist(unclass(startDate_l))[[7]][1]
-  dayNum<-as.numeric(as.Date(startDate_l))+towday1
   
-  towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
-  dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
-  loopNum<-(dayNum_end-dayNum)/7-1
+ 
+  #################################################################################################################AnnualRateOfReturn START
+   {
+    # if(format(as.Date(endDate), "%a")=="週二")
+    # unlist(unclass(as.POSIXlt(as.Date(16699))))
+    # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+    
+    year_A_S<-unlist(unclass(startDate))[[6]][1]+1900
+    mon_A_S<-unlist(unclass(startDate))[[5]][1]+1
+    mday_A_S<-unlist(unclass(startDate))[[4]][1]
+    
+    year_A_E<-unlist(unclass(endDate))[[6]][1]+1900
+    mon_A_E<-unlist(unclass(endDate))[[5]][1]+1
+    mday_A_E<-unlist(unclass(endDate))[[4]][1]
+    
+    # dayNum<-as.numeric(as.Date(endDate))+towday1
+    # 
+    # towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
+    # dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
+    loopNum<-(year_A_E-if(mon_A_E>mon_A_S){year_A_S}else if(mon_A_E==mon_A_S&mday_A_E>mday_A_S-2){year_A_S}else{year_A_S+1})
+    
+    result_t<-NULL
+    for (i in 0:loopNum) {
+      # i=1
+      #改"距今一年" 年報酬
+      # year_A<-unlist(unclass(endDate))[[6]][1]+1900+i
+      period_Start<-paste(year_A_E-1-i,mon_A_E,mday_A_E+1,sep="-")
+      period_End<-paste(year_A_E-i,mon_A_E,mday_A_E,sep="-")
+      period<-paste(as.Date(as.character(period_Start)),as.Date(as.character(period_End)),sep = "/")
+      
+      #符合時間內
+      # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
+      
+      return_period<-return[period]
+      if(dim(return_period)[1]!=0){
+        #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
+        assign("AnnualRateOfReturn",exp(cumsum(return_period)))
+        result_W<-cbind("Date"=paste(substr(time(AnnualRateOfReturn[length(AnnualRateOfReturn)]),1,10),substr(time(AnnualRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(AnnualRateOfReturn[[length(AnnualRateOfReturn)]][1],3))
+        #"WeekRoR"= 到xts沒用
+        result_t<-rbind(result_t,result_W)
+      }
+      # }##########################################################################################################符合時間內##############END
+    }
+    result<-result_t
+    # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
+    #                as.Date(result_t[,1]),
+    #                #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+    #                # src='yahoo',
+    #                Avg=mean(as.numeric(as.matrix(result_t[,2]))),
+    #                updated=Sys.time())
+    
+    # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
+    output2<-paste0("AnnualRateOfReturn.",substr(Symbols.name,1,4))
+    assign(output2,result)
+  
+  #################################################################################################################AnnualRateOfReturn END
+}
+
+  
+  #################################################################################################################FrequencyOfReturn START
+  {
+  #去除NA值
+  for (i in 1:nrow(Btxts_position)) {
+    if(is.na(Btxts_position[i])){
+      j<-i
+    }else{
+      startisNumRow_position<-i;break
+    }
+  }
+  exchangeTimes<-NULL
+  exchangeTimes_RNum<-NULL
+  #exchange times
+  for (p in 1:nrow(Btxts_position)) {
+    if(p>startisNumRow_position&p!=nrow(Btxts_position)){
+      exchangeTimes<-rbind(exchangeTimes,abs(Btxts_position[[p]]-Btxts_position[[p+1]]))
+      if(abs(Btxts_position[[p]]-Btxts_position[[p+1]])!=0){
+        exchangeTimes_RNum<-cbind(exchangeTimes_RNum,p)
+      }
+    }else{
+      exchangeTimes<-rbind(exchangeTimes,0)
+    }
+  }
+  sum(exchangeTimes)
+  exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
+  #output:exchangeTimes_RNum,exchangeTimes
+
+  
+  # year_A_S<-unlist(unclass(startDate))[[6]][1]+1900
+  # mon_A_S<-unlist(unclass(startDate))[[5]][1]+1
+  # mday_A_S<-unlist(unclass(startDate))[[4]][1]
+  # 
+  # year_A_E<-unlist(unclass(endDate))[[6]][1]+1900
+  # mon_A_E<-unlist(unclass(endDate))[[5]][1]+1
+  # mday_A_E<-unlist(unclass(endDate))[[4]][1]
+  # 
+  # # dayNum<-as.numeric(as.Date(endDate))+towday1
+  # # 
+  # # towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
+  # # dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
+  # loopNum<-(year_A_E-if(mon_A_E>mon_A_S){year_A_S}else if(mon_A_E==mon_A_S&mday_A_E>mday_A_S-2){year_A_S}else{year_A_S+1})
   
   result_t<-NULL
-  for (i in 0:loopNum) {
+  for (i in (length(exchangeTimes_RNum)-1):1) {
     # i=1
-    #改周報酬
-    
-    period_Start<-as.Date(dayNum+7*i)#周一
-    period_End<-as.Date(dayNum+6+7*i)#周日
-    
+    #改"距今一年" 年報酬
+    # year_A<-unlist(unclass(endDate))[[6]][1]+1900+i
+    period_Start<-  time(Btxts_position[exchangeTimes_RNum[i]])
+    period_End<-  time(Btxts_position[exchangeTimes_RNum[i+1]])
+    # period<-paste(as.Date(as.character(period_Start)),as.Date(as.character(period_End)),sep = "/")
     period<-paste(period_Start,period_End,sep = "/")
     
     #符合時間內
@@ -206,87 +444,43 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
     return_period<-return[period]
     if(dim(return_period)[1]!=0){
       #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
-      assign("WeekRateOfReturn",exp(cumsum(return_period)))
-      result_W<-cbind("Date"=substr(time(WeekRateOfReturn[length(WeekRateOfReturn)]),1,10),"WeekRoR"=round(WeekRateOfReturn[[length(WeekRateOfReturn)]][1],3))
+      assign("FrequencyOfReturn",exp(cumsum(return_period)))
+      result_W<-cbind("Date"=paste(substr(time(FrequencyOfReturn[length(FrequencyOfReturn)]),1,10),
+                                   substr(time(FrequencyOfReturn[1]),1,10),sep = " ~ "),
+                      "WeekRoR"=round(FrequencyOfReturn[[length(FrequencyOfReturn)]][1],3))
       #"WeekRoR"= 到xts沒用
       result_t<-rbind(result_t,result_W)
     }
     # }##########################################################################################################符合時間內##############END
   }
-  result<-as.xts(as.matrix(as.numeric(result_t[,2])),
-         as.Date(result_t[,1]),
-         #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
-         # src='yahoo',
-         Avg=mean(as.numeric(as.matrix(result_t[,2]))),
-         updated=Sys.time())
+  result<-result_t
+  # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
+  #                as.Date(result_t[,1]),
+  #                #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+  #                # src='yahoo',
+  #                Avg=mean(as.numeric(as.matrix(result_t[,2]))),
+  #                updated=Sys.time())
+  
   # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
-  output2<-paste0("WeekRateOfReturn.",stockNum[i])
+  output2<-paste0("FrequencyOfReturn.",substr(Symbols.name,1,4))
   assign(output2,result)
-}
-#################################################################################################################WeekRateOfReturn END
-#result Example:
-str(WeekRateOfReturn.NA)
-# An ‘xts’ object on 2010-04-16/2016-04-08 containing:
-#   Data: chr [1:308, 1] "0.976" "1.025" "1.028" "0.939" "1.029" "0.913" "0.993" "1.02" "1.051" "0.963" "1.021" "1.076" "0.929" "1" ...
-# Indexed by objects of class: [Date] TZ: UTC
-# xts Attributes:  
-#   List of 1
-# $ updated: POSIXct[1:1], format: "2016-04-17 15:30:19"
-WeekRateOfReturn.NA[,1]
-mean(as.numeric(WeekRateOfReturn.NA[,1]))
-# [1] 1.001286
-summary(WeekRateOfReturn.NA)
-# Index            WeekRateOfReturn.NA
-# Min.   :2010-04-16   Min.   :0.8450     
-# 1st Qu.:2011-10-12   1st Qu.:0.9825     
-# Median :2013-04-15   Median :1.0000     
-# Mean   :2013-04-10   Mean   :1.0013     
-# 3rd Qu.:2014-10-04   3rd Qu.:1.0210     
-# Max.   :2016-04-08   Max.   :1.1830    
-#################################################################################################################AnnualRateOfReturn START
-startDate_l<-startDate
-for (i in 0:) {
-  #改年
-  i<-0
   
-  startDate_l$year+1900+i
+  #################################################################################################################FrequencyOfReturn END
+  }
   
-  startYear_l<-startDate_l$year+1900
-  startMonth_l<-startDate_l$mon+1
-  startDay_l<-startDate_l$mday
-  
-  endYear_l<-endDate$year+1900
-  endMonth_l<-endDate$mon+1
-  endDay_l<-endDate$mday
-  
-  as.numeric(as.Date(startDate))
-  endDate
-  
-  as.numeric(as.Date("2015-06-23"))
-  
-  period_Start<-"2016-01-01"
-  period_End<-"2016-03-31"
-  period<-"2012-10-27/2016-04-12"
-  period<-paste(startYear_l,"01","01",sep = "-"),paste(startYear_l+1,"01","01",sep = "-")
-  
-  give.d<-as.numeric(as.Date("2016-04-19"))
-  #符合時間內
-  if( as.numeric(as.Date(startDate))<give.d & give.d<as.numeric(as.Date(endDate)) ){######################符合時間內##############START
-    
-    return_period<-return[period]
-    
-    #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
-    assign("AnnualRateOfReturn",exp(cumsum(return_period)))
-    result<-cbind(result,AnnualRateOfReturn[length(rtw2317)])
-    
-  }##########################################################################################################符合時間內##############END
-}
-#################################################################################################################AnnualRateOfReturn END
-
-
-
-
-#################################################################################################################################
+  ###XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX未完成
+  FrequencyOfR_position_RowNum<-(exchangeTimes_RNum[1:(length(exchangeTimes_RNum)-1)])#刪除最後持股部位 因為為最後持有狀態
+  A<-as.data.frame(Btxts_position[FrequencyOfR_position_RowNum])
+  slice(A,c(nrow(A):1))
+  FrequencyOfR_result<-cbind(result,slice(A,c(nrow(A):1)))
+  FrequencyOfR_result_2<-Btxts_position[exchangeTimes_RNum[length(exchangeTimes_RNum)]]
+# #################################################################################################################################
+#' ouput
+#'全部   return_All
+#'周   WeekRateOfReturn.2330
+#'距今每一年的報酬   AnnualRateOfReturn.2330
+#'每次報酬   FrequencyOfReturn.2330  FrequencyOfR_result  FrequencyOfR_result_2
+# #################################################################################################################################
 #損益圖畫出
 # plot(rtw2317,main=substr(tw50_dir[i],1,4))
 # }
