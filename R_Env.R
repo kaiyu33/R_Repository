@@ -20,6 +20,9 @@ library(quantmod)
 
 search()
 
+options(stringsAsFactors = T)
+options("stringsAsFactors")
+
 #載入設定
 # 在工作目錄的 .Rprofile
 
@@ -145,3 +148,6 @@ if(length(i <- grep("foo", txt)))
 
 #字長
 nchar(ED)
+
+#FUNCTION用 寫到外面
+assign(n,1:i,globalenv())

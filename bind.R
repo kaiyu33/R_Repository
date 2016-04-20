@@ -23,3 +23,5 @@ y1<-xts(y[,2],as.Date(y[,1]))
 
 cbind(x1,y1)
 as.numeric(Sys.Date())
+
+full_join(df1, df2)
