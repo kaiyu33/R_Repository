@@ -22,6 +22,8 @@
 #'自動往前抓120天 DEFAULT:300天 實際回傳為200+
 #'新增每次報酬率 合併回報持有部位及報酬率 成本 淨報酬 cummax&cummin
 #'
+#'改版六
+#'取消 cummax&cummin 請見 改版:5
 
 #install.packages("quantmod")
 # library(dplyr)
@@ -260,55 +262,55 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   endDay<-endDate$mday
   # unlist(unclass(startDate))
 }
-  #################################################################################################################WeekRateOfReturn START
-  {
-    # if(format(as.Date(startDate), "%a")=="週二")
-    # unlist(unclass(as.POSIXlt(as.Date(16699))))
-    # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+#################################################################################################################WeekRateOfReturn START
+{
+  # if(format(as.Date(startDate), "%a")=="週二")
+  # unlist(unclass(as.POSIXlt(as.Date(16699))))
+  # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+  
+  towday1<-8-unlist(unclass(startDate))[[7]][1]
+  dayNum<-as.numeric(as.Date(startDate))+towday1
+  
+  towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
+  dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
+  loopNum<-(dayNum_end-dayNum)/7-1
+  
+  result_t<-NULL
+  for (i in 0:loopNum) {
+    # i=1
+    #改周報酬
     
-    towday1<-8-unlist(unclass(startDate))[[7]][1]
-    dayNum<-as.numeric(as.Date(startDate))+towday1
+    period_Start<-as.Date(dayNum+7*i)#周一
+    period_End<-as.Date(dayNum+6+7*i)#周日
     
-    towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
-    dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
-    loopNum<-(dayNum_end-dayNum)/7-1
+    period<-paste(period_Start,period_End,sep = "/")
     
-    result_t<-NULL
-    for (i in 0:loopNum) {
-      # i=1
-      #改周報酬
-      
-      period_Start<-as.Date(dayNum+7*i)#周一
-      period_End<-as.Date(dayNum+6+7*i)#周日
-      
-      period<-paste(period_Start,period_End,sep = "/")
-      
-      #符合時間內
-      # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
-      
-      return_period<-return[period]
-      if(dim(return_period)[1]!=0){
-        #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
-        assign("WeekRateOfReturn",exp(cumsum(return_period)))
-        result_W<-cbind("Date"=paste(substr(time(WeekRateOfReturn[length(WeekRateOfReturn)]),1,10),substr(time(WeekRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(WeekRateOfReturn[[length(WeekRateOfReturn)]][1],3))
-        #"WeekRoR"= 到xts沒用
-        result_t<-rbind(result_t,result_W)
-      }
-      # }##########################################################################################################符合時間內##############END
+    #符合時間內
+    # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
+    
+    return_period<-return[period]
+    if(dim(return_period)[1]!=0){
+      #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
+      assign("WeekRateOfReturn",exp(cumsum(return_period)))
+      result_W<-cbind("Date"=paste(substr(time(WeekRateOfReturn[length(WeekRateOfReturn)]),1,10),substr(time(WeekRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(WeekRateOfReturn[[length(WeekRateOfReturn)]][1],3))
+      #"WeekRoR"= 到xts沒用
+      result_t<-rbind(result_t,result_W)
     }
-    result<-result_t
-    # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
-    #        as.Date(result_t[,1]),
-    #        #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
-    #        # src='yahoo',
-    #        Avg=mean(as.numeric(as.matrix(result_t[,2]))),
-    #        updated=Sys.time())
-    # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
-    output2<-paste0("WeekRateOfReturn.",substr(Symbols.name,1,4))
-    assign(output2,result)
+    # }##########################################################################################################符合時間內##############END
   }
-  #################################################################################################################WeekRateOfReturn END
-  {#result Example:
+  result<-result_t
+  # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
+  #        as.Date(result_t[,1]),
+  #        #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+  #        # src='yahoo',
+  #        Avg=mean(as.numeric(as.matrix(result_t[,2]))),
+  #        updated=Sys.time())
+  # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
+  output2<-paste0("WeekRateOfReturn.",substr(Symbols.name,1,4))
+  assign(output2,result)
+}
+#################################################################################################################WeekRateOfReturn END
+{#result Example:
   str(WeekRateOfReturn.NA)
   # An ‘xts’ object on 2010-04-16/2016-04-08 containing:
   #   Data: chr [1:308, 1] "0.976" "1.025" "1.028" "0.939" "1.029" "0.913" "0.993" "1.02" "1.051" "0.963" "1.021" "1.076" "0.929" "1" ...
@@ -330,67 +332,67 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   
   
   
-  }
-  #################################################################################################################AnnualRateOfReturn START
-   {
-    # if(format(as.Date(endDate), "%a")=="週二")
-    # unlist(unclass(as.POSIXlt(as.Date(16699))))
-    # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+}
+#################################################################################################################AnnualRateOfReturn START
+{
+  # if(format(as.Date(endDate), "%a")=="週二")
+  # unlist(unclass(as.POSIXlt(as.Date(16699))))
+  # unlist(unclass(  as.POSIXlt( as.Date(16699))  ))[[7]][1]
+  
+  year_A_S<-unlist(unclass(startDate))[[6]][1]+1900
+  mon_A_S<-unlist(unclass(startDate))[[5]][1]+1
+  mday_A_S<-unlist(unclass(startDate))[[4]][1]
+  
+  year_A_E<-unlist(unclass(endDate))[[6]][1]+1900
+  mon_A_E<-unlist(unclass(endDate))[[5]][1]+1
+  mday_A_E<-unlist(unclass(endDate))[[4]][1]
+  
+  # dayNum<-as.numeric(as.Date(endDate))+towday1
+  # 
+  # towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
+  # dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
+  loopNum<-(year_A_E-if(mon_A_E>mon_A_S){year_A_S}else if(mon_A_E==mon_A_S&mday_A_E>mday_A_S-2){year_A_S}else{year_A_S+1})
+  
+  result_t<-NULL
+  for (i in 0:loopNum) {
+    # i=1
+    #改"距今一年" 年報酬
+    # year_A<-unlist(unclass(endDate))[[6]][1]+1900+i
+    period_Start<-paste(year_A_E-1-i,mon_A_E,mday_A_E+1,sep="-")
+    period_End<-paste(year_A_E-i,mon_A_E,mday_A_E,sep="-")
+    period<-paste(as.Date(as.character(period_Start)),as.Date(as.character(period_End)),sep = "/")
     
-    year_A_S<-unlist(unclass(startDate))[[6]][1]+1900
-    mon_A_S<-unlist(unclass(startDate))[[5]][1]+1
-    mday_A_S<-unlist(unclass(startDate))[[4]][1]
+    #符合時間內
+    # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
     
-    year_A_E<-unlist(unclass(endDate))[[6]][1]+1900
-    mon_A_E<-unlist(unclass(endDate))[[5]][1]+1
-    mday_A_E<-unlist(unclass(endDate))[[4]][1]
-    
-    # dayNum<-as.numeric(as.Date(endDate))+towday1
-    # 
-    # towday1_End<-unlist(unclass(as.POSIXlt(as.Date(endDate))))[[7]][1]-1
-    # dayNum_end<-as.numeric(as.Date(endDate))-towday1_End
-    loopNum<-(year_A_E-if(mon_A_E>mon_A_S){year_A_S}else if(mon_A_E==mon_A_S&mday_A_E>mday_A_S-2){year_A_S}else{year_A_S+1})
-    
-    result_t<-NULL
-    for (i in 0:loopNum) {
-      # i=1
-      #改"距今一年" 年報酬
-      # year_A<-unlist(unclass(endDate))[[6]][1]+1900+i
-      period_Start<-paste(year_A_E-1-i,mon_A_E,mday_A_E+1,sep="-")
-      period_End<-paste(year_A_E-i,mon_A_E,mday_A_E,sep="-")
-      period<-paste(as.Date(as.character(period_Start)),as.Date(as.character(period_End)),sep = "/")
-      
-      #符合時間內
-      # if( as.numeric(as.Date(startDate))<period_Start & period_End<as.numeric(as.Date(endDate)) ){#############符合時間內##############START
-      
-      return_period<-return[period]
-      if(dim(return_period)[1]!=0){
-        #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
-        assign("AnnualRateOfReturn",exp(cumsum(return_period)))
-        result_W<-cbind("Date"=paste(substr(time(AnnualRateOfReturn[length(AnnualRateOfReturn)]),1,10),substr(time(AnnualRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(AnnualRateOfReturn[[length(AnnualRateOfReturn)]][1],3))
-        #"WeekRoR"= 到xts沒用
-        result_t<-rbind(result_t,result_W)
-      }
-      # }##########################################################################################################符合時間內##############END
+    return_period<-return[period]
+    if(dim(return_period)[1]!=0){
+      #(這裡運用國中數學:log(a)+log(b)=log(ab)，exp(log(ab))=ab)將持有期間之所有數字相乘
+      assign("AnnualRateOfReturn",exp(cumsum(return_period)))
+      result_W<-cbind("Date"=paste(substr(time(AnnualRateOfReturn[length(AnnualRateOfReturn)]),1,10),substr(time(AnnualRateOfReturn[1]),1,10),sep = " ~ "),"WeekRoR"=round(AnnualRateOfReturn[[length(AnnualRateOfReturn)]][1],3))
+      #"WeekRoR"= 到xts沒用
+      result_t<-rbind(result_t,result_W)
     }
-    result<-result_t
-    # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
-    #                as.Date(result_t[,1]),
-    #                #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
-    #                # src='yahoo',
-    #                Avg=mean(as.numeric(as.matrix(result_t[,2]))),
-    #                updated=Sys.time())
-    
-    # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
-    output2<-paste0("AnnualRateOfReturn.",substr(Symbols.name,1,4))
-    assign(output2,result)
+    # }##########################################################################################################符合時間內##############END
+  }
+  result<-result_t
+  # result<-as.xts(as.matrix(as.numeric(result_t[,2])),
+  #                as.Date(result_t[,1]),
+  #                #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
+  #                # src='yahoo',
+  #                Avg=mean(as.numeric(as.matrix(result_t[,2]))),
+  #                updated=Sys.time())
+  
+  # attr(result, "dimnames")[[2]][2]<-"WeekRoR"
+  output2<-paste0("AnnualRateOfReturn.",substr(Symbols.name,1,4))
+  assign(output2,result)
   
   #################################################################################################################AnnualRateOfReturn END
 }
 
-  
-  #################################################################################################################FrequencyOfReturn START
-  {#舊到新
+
+#################################################################################################################FrequencyOfReturn START
+{#舊到新
   #去除NA值
   for (i in 1:nrow(Btxts_position)) {
     if(is.na(Btxts_position[i])){
@@ -415,7 +417,7 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   sum(exchangeTimes)
   exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
   #output:exchangeTimes_RNum,exchangeTimes
-
+  
   
   # year_A_S<-unlist(unclass(startDate))[[6]][1]+1900
   # mon_A_S<-unlist(unclass(startDate))[[5]][1]+1
@@ -469,36 +471,38 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   assign(output2,result)
   
   #################################################################################################################FrequencyOfReturn END
-  }
-    #output:FrequencyOfReturn.2330  
+}
+#output:FrequencyOfReturn.2330  
 
-  ###XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+###XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 #移到  FrequencyOfReturn
 {#output:startisNumRow_position  exchangeTimes  exchangeTimes_RNum  
-#去除NA值
-for (i in 1:nrow(Btxts_position)) {
-  if(is.na(Btxts_position[i])){
-    j<-i
-  }else{
-    startisNumRow_position<-i;break
-  }
-}
-exchangeTimes<-NULL
-exchangeTimes_RNum<-NULL
-#exchange times
-for (p in 1:nrow(Btxts_position)) {
-  if(p>startisNumRow_position&p!=nrow(Btxts_position)){
-    exchangeTimes<-rbind(exchangeTimes,abs(Btxts_position[[p]]-Btxts_position[[p+1]]))
-    if(abs(Btxts_position[[p]]-Btxts_position[[p+1]])!=0){
-      exchangeTimes_RNum<-cbind(exchangeTimes_RNum,p)
+  #去除NA值
+  for (i in 1:nrow(Btxts_position)) {
+    if(is.na(Btxts_position[i])){
+      j<-i
+    }else{
+      startisNumRow_position<-i;break
     }
-  }else{
-      exchangeTimes<-rbind(exchangeTimes,0)
   }
+  exchangeTimes<-NULL
+  exchangeTimes_RNum<-NULL
+  #exchange times
+  for (p in 1:nrow(Btxts_position)) {
+    if(p>startisNumRow_position&p!=nrow(Btxts_position)){
+      exchangeTimes<-rbind(exchangeTimes,abs(Btxts_position[[p]]-Btxts_position[[p+1]]))
+      if(abs(Btxts_position[[p]]-Btxts_position[[p+1]])!=0){
+        exchangeTimes_RNum<-cbind(exchangeTimes_RNum,p)
+      }
+    }else{
+      exchangeTimes<-rbind(exchangeTimes,0)
+    }
+  }
+  sum(exchangeTimes)
+  exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
 }
-sum(exchangeTimes)
-exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
-}
+
+{
   FrequencyOfR_position_RowNum<-(exchangeTimes_RNum[1:(length(exchangeTimes_RNum)-1)])#刪除最後持股部位 因為為最後持有狀態
   # A<-as.data.frame(Btxts_position[FrequencyOfR_position_RowNum])
   # FrequencyOfR_position=slice(A,c(nrow(A):1))
@@ -553,64 +557,64 @@ exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
   FrequencyOfR_Accumulation_m_P<-cummin(result[,2])
   
   FrequencyOfR_result_1_tmp<-cbind("Date"=result[,1],
-                             "FrequencyRoR"=round(as.numeric(result[,2]),3),
-                             "position"=FrequencyOfR_position,#this position not use  , useful last times write
-                             "Accumulation"=FrequencyOfR_Accumulation,
-                             "cost_Entrance"=FrequencyOfR_cost_Entrance,#this cost_Entrance not use  , useful last times write
-                             "cost_Export"=FrequencyOfR_cost_Export,#this cost_Export not use  , useful last times write
-                             "Accumulation_MAX_P"=FrequencyOfR_Accumulation_M_P,
-                             "Accumulation_min_P"=FrequencyOfR_Accumulation_m_P)
+                                   "FrequencyRoR"=round(as.numeric(result[,2]),3),
+                                   "position"=FrequencyOfR_position,#this position not use  , useful last times write
+                                   "Accumulation"=FrequencyOfR_Accumulation,
+                                   "cost_Entrance"=FrequencyOfR_cost_Entrance,#this cost_Entrance not use  , useful last times write
+                                   "cost_Export"=FrequencyOfR_cost_Export#this cost_Export not use  , useful last times write
+                                   )
+  
   
   #成本 入口   出口  part2 計算成本
   {
-  ElectronicTrading<-1
-  FrequencyOfR_cost_Entrance_D<-NULL
-  for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
-    if(i==1){
-      if(FrequencyOfR_result_1_tmp[i,5]>0){
-        #資金*進出量*稅率
-        D<-1*FrequencyOfR_result_1_tmp[i,5]*0.001425*ElectronicTrading
-      }else if(FrequencyOfR_result_1_tmp[i,5]<0){
-        D<-(-1*FrequencyOfR_result_1_tmp[i,5]*(0.001425*ElectronicTrading+0.003))
+    ElectronicTrading<-1
+    FrequencyOfR_cost_Entrance_D<-NULL
+    for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
+      if(i==1){
+        if(FrequencyOfR_result_1_tmp[i,5]>0){
+          #資金*進出量*稅率
+          D<-1*FrequencyOfR_result_1_tmp[i,5]*0.001425*ElectronicTrading
+        }else if(FrequencyOfR_result_1_tmp[i,5]<0){
+          D<-(-1*FrequencyOfR_result_1_tmp[i,5]*(0.001425*ElectronicTrading+0.003))
+        }
+      }else if(i!=1){
+        if(FrequencyOfR_result_1_tmp[i,5]>0){
+          #資金*進出量*稅率
+          D<-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,5]*0.001425*ElectronicTrading
+        }else if(FrequencyOfR_result_1_tmp[i,5]<0){
+          D<-(-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,5]*(0.001425*ElectronicTrading+0.003))
+        }
       }
-    }else if(i!=1){
-      if(FrequencyOfR_result_1_tmp[i,5]>0){
-        #資金*進出量*稅率
-        D<-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,5]*0.001425*ElectronicTrading
-      }else if(FrequencyOfR_result_1_tmp[i,5]<0){
-        D<-(-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,5]*(0.001425*ElectronicTrading+0.003))
-      }
+      FrequencyOfR_cost_Entrance_D<-rbind(FrequencyOfR_cost_Entrance_D,D)
     }
-    FrequencyOfR_cost_Entrance_D<-rbind(FrequencyOfR_cost_Entrance_D,D)
-  }
-  # FrequencyOfR_cost_Entrance_D<-as.data.frame(cumsum(FrequencyOfR_cost_Entrance_D),row.names = c(1:nrow(FrequencyOfR_cost_Entrance_D)))
-  # colnames(FrequencyOfR_cost_Entrance_D)<-"cost_Entrance"
-  
-  FrequencyOfR_cost_Export_D<-NULL
-  for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
-    if(i==1){
-      if(FrequencyOfR_result_1_tmp[i,6]>0){
-        #資金*進出量*稅率
-        D<-1*FrequencyOfR_result_1_tmp[i,6]*0.001425*ElectronicTrading
-      }else if(FrequencyOfR_result_1_tmp[i,6]<0){
-        D<-(-1*FrequencyOfR_result_1_tmp[i,6]*(0.001425*ElectronicTrading+0.003))
+    # FrequencyOfR_cost_Entrance_D<-as.data.frame(cumsum(FrequencyOfR_cost_Entrance_D),row.names = c(1:nrow(FrequencyOfR_cost_Entrance_D)))
+    # colnames(FrequencyOfR_cost_Entrance_D)<-"cost_Entrance"
+    
+    FrequencyOfR_cost_Export_D<-NULL
+    for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
+      if(i==1){
+        if(FrequencyOfR_result_1_tmp[i,6]>0){
+          #資金*進出量*稅率
+          D<-1*FrequencyOfR_result_1_tmp[i,6]*0.001425*ElectronicTrading
+        }else if(FrequencyOfR_result_1_tmp[i,6]<0){
+          D<-(-1*FrequencyOfR_result_1_tmp[i,6]*(0.001425*ElectronicTrading+0.003))
+        }
+      }else if(i!=1){
+        if(FrequencyOfR_result_1_tmp[i,6]>0){
+          #資金*進出量*稅率
+          D<-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,6]*0.001425*ElectronicTrading
+        }else if(FrequencyOfR_result_1_tmp[i,6]<0){
+          D<-(-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,6]*(0.001425*ElectronicTrading+0.003))
+        }
       }
-    }else if(i!=1){
-      if(FrequencyOfR_result_1_tmp[i,6]>0){
-        #資金*進出量*稅率
-        D<-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,6]*0.001425*ElectronicTrading
-      }else if(FrequencyOfR_result_1_tmp[i,6]<0){
-        D<-(-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,6]*(0.001425*ElectronicTrading+0.003))
-      }
+      FrequencyOfR_cost_Export_D<-rbind(FrequencyOfR_cost_Export_D,D)
     }
-    FrequencyOfR_cost_Export_D<-rbind(FrequencyOfR_cost_Export_D,D)
-  }
-  # FrequencyOfR_cost_Export_D<-as.data.frame(cumsum(FrequencyOfR_cost_Export_D),row.names = c(1:nrow(FrequencyOfR_cost_Export_D)))
-  # colnames(FrequencyOfR_cost_Export_D)<-"cost_Entrance"
-  
-  FrequencyOfR_cost<-(FrequencyOfR_cost_Entrance_D+FrequencyOfR_cost_Export_D)
-  FrequencyOfR_cost<-as.data.frame(cumsum(FrequencyOfR_cost),row.names = c(1:length(FrequencyOfR_cost)))
-  colnames(FrequencyOfR_cost)<-"cost_ALL"
+    # FrequencyOfR_cost_Export_D<-as.data.frame(cumsum(FrequencyOfR_cost_Export_D),row.names = c(1:nrow(FrequencyOfR_cost_Export_D)))
+    # colnames(FrequencyOfR_cost_Export_D)<-"cost_Entrance"
+    
+    FrequencyOfR_cost<-(FrequencyOfR_cost_Entrance_D+FrequencyOfR_cost_Export_D)
+    FrequencyOfR_cost<-as.data.frame(cumsum(FrequencyOfR_cost),row.names = c(1:length(FrequencyOfR_cost)))
+    colnames(FrequencyOfR_cost)<-"cost_ALL"
   }
   
   Net_FrequencyRoR<-(FrequencyOfR_result_1_tmp[,4]-FrequencyOfR_cost)
@@ -618,40 +622,39 @@ exchangeTimes<-cbind(exchangeTimes,cumsum(exchangeTimes))
   
   FrequencyOfR_result_1_tmp1<-cbind(FrequencyOfR_result_1_tmp[,1:4],
                                     FrequencyOfR_cost,
-                                    "Net_FrequencyRoR"=Net_FrequencyRoR,
-                                    "Accumulation_MAX_P"=FrequencyOfR_Accumulation_M_P,
-                                    "Accumulation_min_P"=FrequencyOfR_Accumulation_m_P)
+                                    "Net_FrequencyRoR"=Net_FrequencyRoR)
   
   FrequencyOfR_result_1_tmp2<-slice(as.data.frame(FrequencyOfR_result_1_tmp1),c(nrow(FrequencyOfR_result_1_tmp):1))#全部反轉
   
-  FrequencyOfR_Accumulation_M_N<-cummax(FrequencyOfR_result_1_tmp[,2])
-  FrequencyOfR_Accumulation_m_N<-cummin(FrequencyOfR_result_1_tmp[,2])
-  
-  FrequencyOfR_result_1<-cbind(FrequencyOfR_result_1_tmp1[,1:7],
-                               "Accumulation_MAX_N"=FrequencyOfR_Accumulation_M_N,
-                               "Accumulation_min_P"=FrequencyOfR_result_1_tmp1[,8],
-                               "Accumulation_min_N"=FrequencyOfR_Accumulation_m_N
-  )
-  # for (i in 1:nrow(FrequencyOfR_result_1)) {
-  #   if(FrequencyOfR_result_1[i,7]==max(FrequencyOfR_result_1[,5])){
-  #     Accumulation_MAX<-(cbind(FrequencyOfR_result_1[1:i,7],FrequencyOfR_result_1[(i+1):nrow(FrequencyOfR_result_1),5]))
-  #     break;
-  #   }
-  # }
-  # 
-  # FrequencyOfR_result<-cbind(FrequencyOfR_result[,1:3],
-  #                              "Accumulation_MAX_N"=default.FrequencyOfR_Accumulation_M,
-  #                              "Accumulation_min_N"=default.FrequencyOfR_Accumulation_m)
-  
-  
-  
-  FrequencyOfR_result_2<-cbind("Final_position"=Btxts_position[[exchangeTimes_RNum[length(exchangeTimes_RNum)]]],
-                               "Accumulation_25"=quantile(as.numeric(result[,2]),0.25),
-                               "Accumulation_50"=quantile(as.numeric(result[,2]),0.50),
-                               "Accumulation_median"=median(as.numeric(result[,2])),
-                               "Accumulation_75"=quantile(as.numeric(result[,2]),0.75)
-                               )
-  rownames(FrequencyOfR_result_2)<-"SUMMARY"
+}
+
+#淨利 淨損 固定成本 1
+for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
+  if(FrequencyOfR_result_1_tmp[i,2]>1){
+    if(i>1){
+      NetIncome<-NetIncome+(FrequencyOfR_result_1_tmp[i,2]*FrequencyOfR_result_1_tmp[i-1,2]-1)
+    }else if(i==1){
+      NetIncome<-(FrequencyOfR_result_1_tmp[i,2]*1-1)
+    }
+  }else if(FrequencyOfR_result_1_tmp[i,2]<1){
+    if(i>1){
+      NetLoss<-NetLoss+(1-FrequencyOfR_result_1_tmp[i,2]*FrequencyOfR_result_1_tmp[i-1,2])
+    }else if(i==1){
+      NetLoss<-(1-FrequencyOfR_result_1_tmp[i,2]*1)
+    }
+  }
+}
+
+FrequencyOfR_result_2<-cbind("Final_position"=if(Btxts_position[[exchangeTimes_RNum[length(exchangeTimes_RNum)]]]>0)"看多"else if(Btxts_position[[exchangeTimes_RNum[length(exchangeTimes_RNum)]]]<0)"看空"else if(Btxts_position[[exchangeTimes_RNum[length(exchangeTimes_RNum)]]]==0)"中立",
+                             "Accumulation_25"=round(quantile(as.numeric(result[,2]),0.25),3),
+                             "Accumulation_50"=round(quantile(as.numeric(result[,2]),0.50),3),
+                             "Accumulation_median"=round(median(as.numeric(result[,2])),3),
+                             "Accumulation_75"=round(quantile(as.numeric(result[,2]),0.75),3),
+                             "NetIncome"=round(NetIncome,3),
+                             "NetLoss"=round(NetLoss,3),
+                             "ProfitFactor"=round(NetIncome/NetLoss,3)
+)
+rownames(FrequencyOfR_result_2)<-"SUMMARY"
 # #################################################################################################################################
 #' ouput
 #'全部   return_All
