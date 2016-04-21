@@ -174,16 +174,13 @@ AnalyzingFormula<-c("ma_20","ma_60")
 ma_20<-runMean(as.numeric(sample.xts[,4]),n=20)
 ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
 
-#################################################################################################################################
-{
-  #判斷式
-  
+############ 判斷式 ##################################################################################################################### 判斷式
   AnalyzingFormula_A<-if(AnalyzingFormula[1]=="ma_20")ma_20
   AnalyzingFormula_B<-if(AnalyzingFormula[2]=="ma_60")ma_60
   
   #符合ma_20>ma_60則1(否:0),延遲一天
-  position<-Lag(ifelse(AnalyzingFormula_A>AnalyzingFormula_B, 1,-1))
-  
+  position<-Lag(ifelse(AnalyzingFormula_A>AnalyzingFormula_B, 1,0))
+  { 
   Btxts_position<-xts(as.matrix(position),
                       as.Date(time(TW.2330)),
                       #as.POSIXct(fr[,1], tz=Sys.getenv("TZ")),
@@ -262,7 +259,7 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   endDay<-endDate$mday
   # unlist(unclass(startDate))
 }
-#################################################################################################################WeekRateOfReturn START
+############WeekRateOfReturn START  ###################################################################################################
 {
   # if(format(as.Date(startDate), "%a")=="週二")
   # unlist(unclass(as.POSIXlt(as.Date(16699))))
@@ -309,7 +306,7 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   output2<-paste0("WeekRateOfReturn.",substr(Symbols.name,1,4))
   assign(output2,result)
 }
-#################################################################################################################WeekRateOfReturn END
+############WeekRateOfReturn END  & result ############################################################################################
 {#result Example:
   str(WeekRateOfReturn.NA)
   # An ‘xts’ object on 2010-04-16/2016-04-08 containing:
@@ -333,7 +330,7 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
   
   
 }
-#################################################################################################################AnnualRateOfReturn START
+############ AnnualRateOfReturn START #################################################################################################
 {
   # if(format(as.Date(endDate), "%a")=="週二")
   # unlist(unclass(as.POSIXlt(as.Date(16699))))
@@ -391,7 +388,7 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
 }
 
 
-#################################################################################################################FrequencyOfReturn START
+############# FrequencyOfReturn START #################################################################################################
 {#舊到新
   #去除NA值
   for (i in 1:nrow(Btxts_position)) {
@@ -474,9 +471,11 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
 }
 #output:FrequencyOfReturn.2330  
 
-###XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#移到  FrequencyOfReturn
-{#output:startisNumRow_position  exchangeTimes  exchangeTimes_RNum  
+###XXXXXXXXXXX 每次報酬最終呈現 ####################################################################################################
+{
+  #新增交易次數
+{ #移到  FrequencyOfReturn
+#output:startisNumRow_position  exchangeTimes  exchangeTimes_RNum  
   #去除NA值
   for (i in 1:nrow(Btxts_position)) {
     if(is.na(Btxts_position[i])){
@@ -607,28 +606,31 @@ ma_60<-runMean(as.numeric(sample.xts[,4]),n=60)
           D<-(-FrequencyOfR_result_1_tmp[(i-1),4]*FrequencyOfR_result_1_tmp[i,6]*(0.001425*ElectronicTrading+0.003))
         }
       }
-      FrequencyOfR_cost_Export_D<-rbind(FrequencyOfR_cost_Export_D,D)
+      FrequencyOfR_cost_Export_D<-rbind(FrequencyOfR_cost_Export_D,i=D)
     }
     # FrequencyOfR_cost_Export_D<-as.data.frame(cumsum(FrequencyOfR_cost_Export_D),row.names = c(1:nrow(FrequencyOfR_cost_Export_D)))
     # colnames(FrequencyOfR_cost_Export_D)<-"cost_Entrance"
     
-    FrequencyOfR_cost<-(FrequencyOfR_cost_Entrance_D+FrequencyOfR_cost_Export_D)
-    FrequencyOfR_cost<-as.data.frame(cumsum(FrequencyOfR_cost),row.names = c(1:length(FrequencyOfR_cost)))
+    FrequencyOfR_cost<-cumsum(FrequencyOfR_cost_Entrance_D+FrequencyOfR_cost_Export_D)#################################################################???
+    # FrequencyOfR_cost_Num<-c(1:length(FrequencyOfR_cost))
+    FrequencyOfR_cost<-as.data.frame(FrequencyOfR_cost,optional = T)
     colnames(FrequencyOfR_cost)<-"cost_ALL"
   }
   
   Net_FrequencyRoR<-(FrequencyOfR_result_1_tmp[,4]-FrequencyOfR_cost)
   colnames(Net_FrequencyRoR)<-"Net_FrequencyRoR"
   
-  FrequencyOfR_result_1_tmp1<-cbind(FrequencyOfR_result_1_tmp[,1:4],
+  FrequencyOfR_result<-cbind(FrequencyOfR_result_1_tmp[,1:4],
                                     FrequencyOfR_cost,
                                     "Net_FrequencyRoR"=Net_FrequencyRoR)
   
-  FrequencyOfR_result_1_tmp2<-slice(as.data.frame(FrequencyOfR_result_1_tmp1),c(nrow(FrequencyOfR_result_1_tmp):1))#全部反轉
+  FrequencyOfR_result<-slice(as.data.frame(FrequencyOfR_result),c(nrow(FrequencyOfR_result_1_tmp):1))#全部反轉
   
 }
 
 #淨利 淨損 固定成本 1
+NetIncome<-0
+NetLoss<-0
 for (i in 1:nrow(FrequencyOfR_result_1_tmp)) {
   if(FrequencyOfR_result_1_tmp[i,2]>1){
     if(i>1){
@@ -655,6 +657,7 @@ FrequencyOfR_result_2<-cbind("Final_position"=if(Btxts_position[[exchangeTimes_R
                              "ProfitFactor"=round(NetIncome/NetLoss,3)
 )
 rownames(FrequencyOfR_result_2)<-"SUMMARY"
+}
 # #################################################################################################################################
 #' ouput
 #'全部   return_All

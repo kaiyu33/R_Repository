@@ -1,6 +1,6 @@
 #台股######################################################################################
 
-library(dplyr)
+# library(dplyr)
 #install.packages("quantmod")
 library(quantmod)
 

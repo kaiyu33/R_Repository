@@ -80,8 +80,12 @@ write(format(t(x), nsmall=3), ncolumns=3, file="d:/out6.txt")
 format(t(x), nsmall=3)
 
 #自訂函數
-fun_name<- function(…){
-  …
+fun_name<- function(a,b){
+  c<-a
+ if(b==1)
+assign(c,"yes",globalenv())
+  if(b!=1)
+assign(c,"no",globalenv())
 }
 
 #demo
