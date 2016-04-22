@@ -88,6 +88,13 @@ assign(c,"yes",globalenv())
 assign(c,"no",globalenv())
 }
 
+# 除錯函數 
+# R 提供了以下的除錯功能:
+  traceback()
+browser
+debug()
+trace
+
 #demo
 demo(graphics)
 
