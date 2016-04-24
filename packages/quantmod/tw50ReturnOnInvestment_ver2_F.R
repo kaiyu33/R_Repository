@@ -480,9 +480,7 @@ FrequencyOfReturn<-function(stockNum
 #output:FrequencyOfReturn.2330  
 
 ###XXXXXXXXXXX 每次報酬最終呈現 ####################################################################################################
-FrequencyOfReturn_Report(
-  
-)
+FrequencyOfReturn_Report(FrequencyOfReturn.2317,Btxts_position=Btxts_position)
 
 FrequencyOfReturn_Report<-function(result
                                    ,Btxts_position
@@ -593,8 +591,8 @@ FrequencyOfReturn_Report<-function(result
     
     FrequencyOfR_result<-slice(as.data.frame(FrequencyOfR_result_1_tmp),c(nrow(FrequencyOfR_result_1_tmp):1))#全部反轉
     assign("FrequencyOfReturn_Report",FrequencyOfR_result,globalenv())
-  }
-  
+    
+    ###################################################################################################Report2
   #淨利 淨損 固定成本 1
   NetIncome<-0
   NetLoss<-0
@@ -624,6 +622,7 @@ FrequencyOfReturn_Report<-function(result
                                "ProfitFactor"=round(NetIncome/NetLoss,3)
   )
   rownames(FrequencyOfR_result_2)<-"SUMMARY"
+  assign("FrequencyOfReturn_Report2",FrequencyOfR_result_2,globalenv())
 }
 # #################################################################################################################################
 #' ouput
