@@ -188,7 +188,8 @@ AnalyzingFormula<-function(stock.xts
 }
 
 # AnalyzingFormula(TW.2317,EDxts)
-
+# AnalyzingFormula(TW.2317,EDxts,AnalyzingFormula_A=runMean(as.numeric(TW.2317[,6]),n=20)
+#                  ,AnalyzingFormula_B=runMean(as.numeric(TW.2317[,6]),n=60))
 ###################################################################################################
 WeekRateOfReturn<-function(stockNum
                            ,startDate
